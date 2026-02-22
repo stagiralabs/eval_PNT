@@ -63,15 +63,35 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
 @[target]
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  intro h
+  unfold Set.uIoo at h
+  simp [Set.mem_Ioo] at h
+  linarith
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  intro h
+  unfold Set.uIoo at h
+  simp [Set.mem_Ioo] at h
+  linarith
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  unfold Set.uIoo at hc
+  simp only [Set.mem_Ioo, min_lt_iff, lt_max_iff] at hc
+  intro h
+  rw [h] at hc
+  rcases hc.1 with h1|h1 <;> rcases hc.2 with h2|h2 <;> linarith
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  unfold Set.uIoo at hc
+  simp only [Set.mem_Ioo, min_lt_iff, lt_max_iff] at hc
+  intro h
+  rw [h] at hc
+  rcases hc.1 with h1|h1 <;> rcases hc.2 with h2|h2 <;> linarith
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  show z ∈ [[z.re, w.re]] ×ℂ [[z.im, w.im]]
+  exact ⟨left_mem_uIcc, left_mem_uIcc⟩
 @[target]
 lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
 @[target]
