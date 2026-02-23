@@ -24,9 +24,11 @@ noncomputable def HIntegral' (f : ℂ → E) (x₁ x₂ y : ℝ) : E := (1 / (2 
 noncomputable def VIntegral' (f : ℂ → E) (x y₁ y₂ : ℝ) : E :=  (1 / (2 * π * I)) • VIntegral f x y₁ y₂
 
 @[target]
-lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := by sorry
+lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := by
+  unfold HIntegral; rw [intervalIntegral.integral_symm x₂ x₁]
 @[target]
-lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by sorry
+lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
+  unfold VIntegral; rw [intervalIntegral.integral_symm y₂ y₁, smul_neg]
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -288,7 +290,12 @@ theorem RectangleIntegral.translate' (f : ℂ → E) (z w p : ℂ) :
 @[target]
 lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by sorry
 @[target]
-lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by sorry
+lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by
+  intro h
+  have hx : 0 ≤ x ^ 2 := sq_nonneg x
+  have hy' : 0 ≤ y ^ 2 := sq_nonneg y
+  have : y ^ 2 = 0 := by linarith
+  exact hy (sq_eq_zero_iff.mp this)
 @[target]
 lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) := by sorry
 @[target]
