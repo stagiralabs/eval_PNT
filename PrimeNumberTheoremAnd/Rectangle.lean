@@ -39,13 +39,15 @@ lemma Square_apply (p : ℂ) (cpos : c > 0) :
     Square p c = Icc (-c + p.re) (c + p.re) ×ℂ Icc (-c + p.im) (c + p.im) := by sorry
 @[target, simp]
 theorem preimage_equivRealProdCLM_reProdIm (s t : Set ℝ) :
-    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t := by sorry
+    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t := by
+  ext ⟨x, y⟩
+  simp [reProdIm, equivRealProdCLM_symm_apply]
 @[target, simp]
 theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
     {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
     [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
     [Module S M₂] (e : M ≃SL[σ] M₂) :
-    ⇑e.toLinearEquiv.symm = e.symm := by sorry
+    ⇑e.toLinearEquiv.symm = e.symm := by rfl
 /-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product
   of two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598.-/
 @[target]
@@ -59,21 +61,39 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
     Rectangle z w ⊆ U := by sorry
 @[target]
 lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
-    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by sorry
+    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
+  simp only [Rectangle, Complex.mem_reProdIm, uIcc_of_le zRe_lt_wRe, uIcc_of_le zIm_lt_wIm,
+    Set.mem_Icc]
+  constructor
+  · intro ⟨h1, h2⟩; exact ⟨h1.1, h1.2, h2.1, h2.2⟩
+  · intro ⟨h1, h2, h3, h4⟩; exact ⟨⟨h1, h2⟩, ⟨h3, h4⟩⟩
 @[target]
-lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
+lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
+  simp [Square, Rectangle, uIcc_comm]
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  simp only [Set.uIoo, Set.mem_Ioo, not_and_or, not_lt]
+  rcases le_or_lt a b with h | h
+  · left; simp [min_eq_left h]
+  · right; simp [max_eq_left (le_of_lt h)]
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  simp only [Set.uIoo, Set.mem_Ioo, not_and_or, not_lt]
+  rcases le_or_lt a b with h | h
+  · right; simp [max_eq_right h]
+  · left; simp [min_eq_right (le_of_lt h)]
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  intro heq; rw [heq] at hc; exact absurd hc Set.left_not_mem_uIoo
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  intro heq; rw [heq] at hc; exact absurd hc Set.right_not_mem_uIoo
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  simp [Rectangle, mem_reProdIm]
 @[target]
-lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
+lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by
+  simp [Rectangle, mem_reProdIm]
 @[target]
 lemma rect_subset_iff {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by sorry
@@ -87,7 +107,16 @@ lemma RectSubRect' {z₀ z₁ z₂ z₃ : ℂ} (x₀_le_x₁ : z₀.re ≤ z₁.
     (y₂_le_y₃ : z₂.im ≤ z₃.im) :
     Rectangle z₁ z₂ ⊆ Rectangle z₀ z₃ := by sorry
 @[target]
-lemma rectangleBorder_subset_rectangle (z w : ℂ) : RectangleBorder z w ⊆ Rectangle z w := by sorry
+lemma rectangleBorder_subset_rectangle (z w : ℂ) : RectangleBorder z w ⊆ Rectangle z w := by
+  intro x hx
+  simp only [RectangleBorder, Set.mem_union] at hx
+  rw [Rectangle, Complex.mem_reProdIm]
+  rcases hx with (((h | h) | h) | h) <;>
+  simp only [Complex.mem_reProdIm, Set.mem_singleton_iff] at h
+  · exact ⟨h.1, by rw [h.2]; exact Set.left_mem_uIcc⟩
+  · exact ⟨by rw [h.1]; exact Set.left_mem_uIcc, h.2⟩
+  · exact ⟨h.1, by rw [h.2]; exact Set.right_mem_uIcc⟩
+  · exact ⟨by rw [h.1]; exact Set.right_mem_uIcc, h.2⟩
 /-- Note: try using `by simp` for `h`. -/
 @[target]
 lemma rectangle_disjoint_singleton {z w p : ℂ}
