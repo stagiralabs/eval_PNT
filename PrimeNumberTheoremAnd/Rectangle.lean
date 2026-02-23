@@ -39,13 +39,15 @@ lemma Square_apply (p : ℂ) (cpos : c > 0) :
     Square p c = Icc (-c + p.re) (c + p.re) ×ℂ Icc (-c + p.im) (c + p.im) := by sorry
 @[target, simp]
 theorem preimage_equivRealProdCLM_reProdIm (s t : Set ℝ) :
-    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t := by sorry
+    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t := by
+  ext ⟨x, y⟩
+  simp [Complex.mem_reProdIm]
 @[target, simp]
 theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
     {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
     [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
     [Module S M₂] (e : M ≃SL[σ] M₂) :
-    ⇑e.toLinearEquiv.symm = e.symm := by sorry
+    ⇑e.toLinearEquiv.symm = e.symm := by rfl
 /-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product
   of two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598.-/
 @[target]
@@ -63,20 +65,35 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
 @[target]
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  simp [Set.uIoo, Set.mem_Ioo]; intro h; exact le_of_lt h
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  simp [Set.uIoo, Set.mem_Ioo]; intro h; exact le_of_lt h
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  intro h; subst h; exact absurd hc (by simp [Set.uIoo, Set.mem_Ioo]; intro h; exact le_of_lt h)
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  intro h; subst h; exact absurd hc (by simp [Set.uIoo, Set.mem_Ioo]; intro h; exact le_of_lt h)
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  simp [Rectangle, Complex.mem_reProdIm]
 @[target]
-lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
+lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by
+  simp [Rectangle, Complex.mem_reProdIm]
 @[target]
 lemma rect_subset_iff {z w z' w' : ℂ} :
-    Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by sorry
+    Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by
+  simp only [Rectangle, Complex.mem_reProdIm]
+  constructor
+  · intro h
+    constructor
+    · apply h; simp [Complex.mem_reProdIm]
+    · apply h; simp [Complex.mem_reProdIm]
+  · intro ⟨hz', hw'⟩ x hx
+    simp only [Complex.mem_reProdIm] at *
+    exact ⟨Set.uIcc_subset_uIcc hz'.1 hw'.1 hx.1, Set.uIcc_subset_uIcc hz'.2 hw'.2 hx.2⟩
 @[target]
 lemma RectSubRect {x₀ x₁ x₂ x₃ y₀ y₁ y₂ y₃ : ℝ} (x₀_le_x₁ : x₀ ≤ x₁) (x₁_le_x₂ : x₁ ≤ x₂)
     (x₂_le_x₃ : x₂ ≤ x₃) (y₀_le_y₁ : y₀ ≤ y₁) (y₁_le_y₂ : y₁ ≤ y₂) (y₂_le_y₃ : y₂ ≤ y₃) :
