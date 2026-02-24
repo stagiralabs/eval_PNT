@@ -45,7 +45,7 @@ theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Se
     {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
     [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
     [Module S M₂] (e : M ≃SL[σ] M₂) :
-    ⇑e.toLinearEquiv.symm = e.symm := by sorry
+    ⇑e.toLinearEquiv.symm = e.symm := by rfl
 /-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product
   of two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598.-/
 @[target]
@@ -63,13 +63,25 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
 @[target]
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  rcases le_or_lt a b with hab | hab
+  · simp [Set.uIoo, min_eq_left hab, max_eq_right hab, Set.mem_Ioo, lt_irrefl]
+  · simp [Set.uIoo, min_eq_right hab.le, max_eq_left hab.le, Set.mem_Ioo, lt_irrefl]
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  rcases le_or_lt a b with hab | hab
+  · simp [Set.uIoo, min_eq_left hab, max_eq_right hab, Set.mem_Ioo, lt_irrefl]
+  · simp [Set.uIoo, min_eq_right hab.le, max_eq_left hab.le, Set.mem_Ioo, lt_irrefl]
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  rcases le_or_lt a b with hab | hab
+  · simp [Set.uIoo, min_eq_left hab, max_eq_right hab, Set.mem_Ioo] at hc; linarith [hc.1]
+  · simp [Set.uIoo, min_eq_right hab.le, max_eq_left hab.le, Set.mem_Ioo] at hc; linarith [hc.2]
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  rcases le_or_lt a b with hab | hab
+  · simp [Set.uIoo, min_eq_left hab, max_eq_right hab, Set.mem_Ioo] at hc; linarith [hc.2]
+  · simp [Set.uIoo, min_eq_right hab.le, max_eq_left hab.le, Set.mem_Ioo] at hc; linarith [hc.1]
 @[target]
 lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
 @[target]
