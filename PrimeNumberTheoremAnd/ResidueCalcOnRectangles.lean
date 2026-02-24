@@ -288,7 +288,9 @@ theorem RectangleIntegral.translate' (f : ℂ → E) (z w p : ℂ) :
 @[target]
 lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by sorry
 @[target]
-lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by sorry
+lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by
+  have hy2 : 0 < y ^ 2 := sq_pos_of_ne_zero hy
+  linarith [sq_nonneg x]
 @[target]
 lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) := by sorry
 @[target]
