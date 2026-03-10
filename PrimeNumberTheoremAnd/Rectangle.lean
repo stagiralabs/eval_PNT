@@ -59,21 +59,46 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
     Rectangle z w ⊆ U := by sorry
 @[target]
 lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
-    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by sorry
+    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
+  simp only [Rectangle, Complex.mem_reProdIm]
+  have h_re : z.re ⊓ w.re = z.re := by simp [min_eq_left, zRe_lt_wRe]
+  have h_re2 : z.re ⊔ w.re = w.re := by simp [max_eq_right, zRe_lt_wRe]
+  have h_im : z.im ⊓ w.im = z.im := by simp [min_eq_left, zIm_lt_wIm]
+  have h_im2 : z.im ⊔ w.im = w.im := by simp [max_eq_right, zIm_lt_wIm]
+  simp only [Set.uIcc, h_re, h_re2, h_im, h_im2, Set.mem_Icc]
+  <;> simp_all [and_assoc]
 @[target]
-lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
+lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
+  simp [Square, Rectangle, uIcc_comm]
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  intro h
+  simp [Set.uIoo, Set.mem_Ioo, min_lt_iff, lt_irrefl a] at h
+  exact lt_asymm h.2 h.1
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  intro h
+  simp [Set.uIoo, Set.mem_Ioo, min_lt_iff, lt_irrefl b] at h
+  exact lt_asymm h.1 h.2
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  intro h
+  rw [h] at hc
+  simp [Set.uIoo, Set.mem_Ioo] at hc
+  exact lt_asymm hc.1 hc.2
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  intro h
+  rw [h] at hc
+  simp [Set.uIoo, Set.mem_Ioo] at hc
+  exact lt_asymm hc.1 hc.2
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  simp [Rectangle]
+  constructor <;> simp [Set.mem_Icc, le_refl]
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
-@[target]
-lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
+lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by
+  simp [Rectangle]
+  constructor <;> simp [Set.mem_Icc, le_refl]
 @[target]
 lemma rect_subset_iff {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by sorry
@@ -93,7 +118,29 @@ lemma rectangleBorder_subset_rectangle (z w : ℂ) : RectangleBorder z w ⊆ Rec
 lemma rectangle_disjoint_singleton {z w p : ℂ}
     (h : (p.re < z.re ∧ p.re < w.re) ∨ (p.im < z.im ∧ p.im < w.im) ∨
       (z.re < p.re ∧ w.re < p.re) ∨ (z.im < p.im ∧ w.im < p.im)) :
-    Disjoint (Rectangle z w) {p} := by sorry
+    Disjoint (Rectangle z w) {p} := by
+  rw [Set.disjoint_iff]
+  intro x hx
+  rcases hx with ⟨hrect, rfl⟩
+  -- x is outside the rectangle in at least one direction
+  rcases h with (⟨hre1, hre2⟩ | ⟨him1, him2⟩ | ⟨hre1, hre2⟩ | ⟨him1, him2⟩)
+  · -- x.re < z.re ∧ x.re < w.re
+    -- x.re < min(z.re, w.re), so x.re ∉ [[z.re, w.re]]
+    simp [Rectangle, Set.mem_prod, Set.mem_Icc] at hrect
+    have : x.re < z.re ⊓ w.re := lt_min hre1 hre2
+    linarith [hrect.1.1]
+  · -- x.im < z.im ∧ x.im < w.im
+    simp [Rectangle, Set.mem_prod, Set.mem_Icc] at hrect
+    have : x.im < z.im ⊓ w.im := lt_min him1 him2
+    linarith [hrect.2.1]
+  · -- z.re < x.re ∧ w.re < x.re
+    simp [Rectangle, Set.mem_prod, Set.mem_Icc] at hrect
+    have : z.re ⊔ w.re < x.re := max_lt hre1 hre2
+    linarith [hrect.1.2]
+  · -- z.im < x.im ∧ w.im < x.im
+    simp [Rectangle, Set.mem_prod, Set.mem_Icc] at hrect
+    have : z.im ⊔ w.im < x.im := max_lt him1 him2
+    linarith [hrect.2.2]
 @[target]
 lemma rectangleBorder_disjoint_singleton {z w p : ℂ}
     (h : p.re ≠ z.re ∧ p.re ≠ w.re ∧ p.im ≠ z.im ∧ p.im ≠ w.im) :
@@ -116,16 +163,44 @@ lemma rectangle_mem_nhds_iff {z w p : ℂ} : Rectangle z w ∈ 𝓝 p ↔
     p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by sorry
 @[target]
 lemma mapsTo_rectangle_left_re (z w : ℂ) :
-    MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) := by sorry
+    MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) := by
+  intro y hy
+  simp only [Rectangle, Complex.mem_reProdIm]
+  constructor
+  · -- Show z.re ∈ [[z.re, w.re]]
+    simp [Set.uIcc, Set.mem_Icc, le_refl]
+  · -- Show y ∈ [[z.im, w.im]]
+    simpa [Complex.im, Complex.ofReal_add, Complex.ofReal_mul, Complex.I_im] using hy
 @[target]
 lemma mapsTo_rectangle_right_re (z w : ℂ) :
-    MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) := by sorry
+    MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) := by
+  intro y hy
+  simp only [Rectangle, Complex.mem_reProdIm]
+  constructor
+  · -- Show w.re ∈ [[z.re, w.re]]
+    simp [Set.uIcc, Set.mem_Icc, le_refl]
+  · -- Show y ∈ [[z.im, w.im]]
+    simpa [Complex.im, Complex.ofReal_add, Complex.ofReal_mul, Complex.I_im] using hy
 @[target]
 lemma mapsTo_rectangle_left_im (z w : ℂ) :
-    MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w) := by sorry
+    MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w) := by
+  intro x hx
+  simp only [Rectangle, Complex.mem_reProdIm]
+  constructor
+  · -- Show (↑x + z.im * I).re ∈ [[z.re, w.re]]
+    simpa [Complex.re, Complex.ofReal_add, Complex.ofReal_mul, Complex.I_re, Complex.ofReal_re] using hx
+  · -- Show z.im ∈ [[z.im, w.im]]
+    simp [Set.uIcc, Set.mem_Icc, le_refl]
 @[target]
 lemma mapsTo_rectangle_right_im (z w : ℂ) :
-    MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) := by sorry
+    MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) := by
+  intro x hx
+  simp only [Rectangle, Complex.mem_reProdIm]
+  constructor
+  · -- Show (↑x + w.im * I).re ∈ [[z.re, w.re]]
+    simpa [Complex.re, Complex.ofReal_add, Complex.ofReal_mul, Complex.I_re, Complex.ofReal_re] using hx
+  · -- Show w.im ∈ [[z.im, w.im]]
+    simp [Set.uIcc, Set.mem_Icc, le_refl]
 @[target]
 lemma mapsTo_rectangleBorder_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (RectangleBorder z w) := by sorry
