@@ -59,21 +59,67 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
     Rectangle z w ⊆ U := by sorry
 @[target]
 lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
-    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by sorry
+    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
+  simp only [Rectangle, reProdIm, Set.mem_preimage, Set.mem_setOf_eq, Set.mem_inter_iff]
+  simp [uIcc, Set.mem_Icc, zRe_lt_wRe, zIm_lt_wIm, and_assoc]
 @[target]
-lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
+lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
+  simp [Square]
+  -- Need to show: (-c + -(c*I) + p) = (-c - c*I + p)
+  -- Then use Rectangle.symm
+  have h : (-c + -(c * I) + p : ℂ) = (-c - c * I + p) := by ring
+  rw [h]
+  rw [Rectangle.symm]
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  intro h
+  simp only [Set.uIoo, Set.mem_Ioo] at h
+  -- h gives us: a ⊓ b < a ∧ a < a ⊔ b
+  cases' le_total a b with hab hab
+  · -- Case: a ≤ b
+    rw [inf_eq_left.mpr hab, sup_eq_right.mpr hab] at h
+    exact lt_irrefl a h.1
+  · -- Case: b ≤ a
+    rw [inf_eq_right.mpr hab, sup_eq_left.mpr hab] at h
+    exact lt_irrefl a h.2
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  intro h
+  simp [Set.uIoo, Set.mem_setOf_eq] at h
+  exact lt_asymm h.1 h.2
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  simp only [Set.uIoo, Set.mem_Ioo] at hc
+  intro h
+  rw [h] at hc
+  -- hc: a ⊓ b < a ∧ a < a ⊔ b
+  cases' le_total a b with hab hab
+  · -- a ≤ b, so a ⊓ b = a
+    rw [inf_eq_left.mpr hab, sup_eq_right.mpr hab] at hc
+    exact lt_irrefl a hc.1
+  · -- b ≤ a, so a ⊔ b = a
+    rw [inf_eq_right.mpr hab, sup_eq_left.mpr hab] at hc
+    exact lt_irrefl a hc.2
 @[target]
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by
+  simp only [Set.uIoo, Set.mem_Ioo] at hc
+  intro h
+  rw [h] at hc
+  -- hc: b ⊓ b < b ∧ b < b ⊔ b
+  cases' le_total a b with hab hab
+  · -- a ≤ b, so a ⊔ b = b
+    rw [inf_eq_left.mpr hab, sup_eq_right.mpr hab] at hc
+    exact lt_irrefl b hc.2
+  · -- b ≤ a, so b ⊓ a = b
+    rw [inf_eq_right.mpr hab, sup_eq_left.mpr hab] at hc
+    exact lt_irrefl b hc.1
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  simp [Rectangle]; constructor <;> simp
 @[target]
-lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
+lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by
+  simp [Rectangle, Set.mem_setOf_eq]
+  <;> constructor <;> simp [le_refl]
 @[target]
 lemma rect_subset_iff {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by sorry

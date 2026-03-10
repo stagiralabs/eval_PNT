@@ -24,9 +24,14 @@ noncomputable def HIntegral' (f : ℂ → E) (x₁ x₂ y : ℝ) : E := (1 / (2 
 noncomputable def VIntegral' (f : ℂ → E) (x y₁ y₂ : ℝ) : E :=  (1 / (2 * π * I)) • VIntegral f x y₁ y₂
 
 @[target]
-lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := by sorry
+lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := by
+  dsimp [HIntegral]
+  rw [intervalIntegral.integral_symm]
 @[target]
-lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by sorry
+lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
+  dsimp [VIntegral]
+  rw [intervalIntegral.integral_symm]
+  simp [neg_smul]
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -138,7 +143,14 @@ theorem RectangleIntegral'_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral' f z w = RectangleIntegral' g z w := by sorry
 @[target]
 theorem rectangleIntegral_symm (f : ℂ → E) (z w : ℂ) :
-    RectangleIntegral f z w = RectangleIntegral f w z := by sorry
+    RectangleIntegral f z w = RectangleIntegral f w z := by
+  dsimp [RectangleIntegral]
+  have h1 : HIntegral f w.re z.re w.im = -HIntegral f z.re w.re w.im := by rw [HIntegral_symm]
+  have h2 : HIntegral f z.re w.re z.im = -HIntegral f w.re z.re z.im := by rw [HIntegral_symm]
+  have h3 : VIntegral f z.re w.im z.im = -VIntegral f z.re z.im w.im := by rw [VIntegral_symm]
+  have h4 : VIntegral f w.re w.im z.im = -VIntegral f w.re z.im w.im := by rw [VIntegral_symm]
+  rw [h1, h2, h3, h4]
+  simp [sub_eq_add_neg, add_assoc, add_comm, add_left_comm]
 @[target]
 theorem rectangleIntegral_symm_re (f : ℂ → E) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by sorry
@@ -275,7 +287,16 @@ theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
     IntervalIntegrable f volume a b := by sorry
 @[target]
 theorem RectangleIntegral.const_smul (f : ℂ → E) (z w c : ℂ) :
-    RectangleIntegral (fun s => c • f s) z w = c • RectangleIntegral f z w := by sorry
+    RectangleIntegral (fun s => c • f s) z w = c • RectangleIntegral f z w := by
+  dsimp [RectangleIntegral, HIntegral, VIntegral]
+  simp [intervalIntegral.integral_smul_const]
+  -- The goal is to show that c factors out of the entire expression
+  -- Use the fact that scalar multiplication is linear
+  rw [smul_sub, smul_add, smul_sub]
+  -- Now the goal is to show I • c • X = c • I • X
+  -- This follows from commutativity of scalar multiplication in a module over a commutative ring
+  simp [smul_smul, mul_comm]
+  <;> ring_nf
 @[target]
 theorem RectangleIntegral.const_mul' (f : ℂ → E) (z w c : ℂ) :
     RectangleIntegral' (fun s => c • f s) z w = c • RectangleIntegral' f z w := by sorry
@@ -286,11 +307,42 @@ theorem RectangleIntegral.translate (f : ℂ → E) (z w p : ℂ) :
 theorem RectangleIntegral.translate' (f : ℂ → E) (z w p : ℂ) :
     RectangleIntegral' (fun s => f (s - p)) z w = RectangleIntegral' f (z - p) (w - p) := by sorry
 @[target]
-lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by sorry
+lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by
+  -- Use the standard complex inverse formula
+  by_cases h : x = 0 ∧ y = 0
+  · simp [h]
+  · have hne : x + y * I ≠ 0 := by
+      intro h2
+      simp [Complex.ext_iff] at h2
+      exact h ⟨h2.1, h2.2⟩
+    -- normSq (x + y*I) = x^2 + y^2
+    have normSq_eq : normSq (x + y * I) = (x ^ 2 + y ^ 2 : ℝ) := by
+      simp [Complex.normSq, pow_two]
+      <;> ring
+    -- Use Complex.inv_def which says z⁻¹ = ⟨x, -y⟩ / normSq(z)
+    rw [Complex.inv_def]
+    simp [normSq_eq, Complex.ext_iff, pow_two]
+    <;> field_simp [hne]
+    <;> ring_nf
+    <;> simp [Complex.ext_iff, pow_two]
+    <;> norm_num
+    <;> field_simp [hne]
+    <;> ring
+    <;> simp
 @[target]
-lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by sorry
+lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by
+  intro h
+  have : y ^ 2 = 0 := by
+    nlinarith [sq_nonneg x]
+  exact hy (by simpa using this)
 @[target]
-lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) := by sorry
+lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) := by
+  apply Continuous.div continuous_id
+  · apply Continuous.add (continuous_pow 2) continuous_const
+  · intro x
+    have : 0 < y ^ 2 := by positivity
+    have : 0 ≤ x ^ 2 := by positivity
+    nlinarith
 @[target]
 lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
     Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2 := by sorry
