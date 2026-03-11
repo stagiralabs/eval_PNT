@@ -61,17 +61,27 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
 lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
     p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by sorry
 @[target]
-lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
+lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
+  simp [Square, Rectangle.symm, neg_mul, neg_neg]
+  <;> ring_nf
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  intro h
+  simp [Set.uIoo, Set.mem_Ioo] at h
+  exact lt_asymm h.1 h.2
 @[target]
 theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
 @[target]
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by
+  intro h
+  simp only [Set.uIoo, Set.mem_Ioo] at hc
+  cases' le_total a b with hab hab <;> simp_all [lt_irrefl]
 @[target]
 theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b := by sorry
 @[target]
-lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by sorry
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := by
+  simp only [Rectangle, Set.mem_prod]
+  constructor <;> simp [Set.mem_uIcc, le_refl]
 @[target]
 lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := by sorry
 @[target]
