@@ -63,9 +63,19 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
 @[target]
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by sorry
 @[target]
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by sorry
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b := by
+  cases le_total a b with
+  | inl hle =>
+    simp only [Set.uIoo_of_le hle, Set.left_mem_Ioo, not_true_eq_false, not_false_eq_true]
+  | inr hge =>
+    simp only [Set.uIoo_of_ge hge, Set.right_mem_Ioo, not_true_eq_false, not_false_eq_true]
 @[target]
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by sorry
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b := by
+  cases le_total a b with
+  | inl hle =>
+    simp only [Set.uIoo_of_le hle, Set.right_mem_Ioo, not_true_eq_false, not_false_eq_true]
+  | inr hge =>
+    simp only [Set.uIoo_of_ge hge, Set.left_mem_Ioo, not_true_eq_false, not_false_eq_true]
 @[target]
 theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a := by sorry
 @[target]
